@@ -19,3 +19,11 @@ compile_debug
 cmake-build-*
 .DS_Store
 venv
+
+# log and cofnig files 
+autotrader
+autotrader.log
+exchange.log
+info.dat
+match_events.csv
+score_board.csv

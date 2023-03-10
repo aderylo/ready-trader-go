@@ -97,18 +97,20 @@ The archive contains:
 
 Each autotrader is configured with a JSON file like this:
 
-    {
-      "Execution": {
-        "Host": "127.0.0.1",
-        "Port": 12345
-      },
-      "Information": {
-        "Type": "mmap",
-        "Name": "info.dat"
-      },
-      "TeamName": "TraderOne",
-      "Secret": "secret"
-    }
+```json
+{
+  "Execution": {
+    "Host": "127.0.0.1",
+    "Port": 12345
+  },
+  "Information": {
+    "Type": "mmap",
+    "Name": "info.dat"
+  },
+  "TeamName": "TraderOne",
+  "Secret": "secret"
+}
+```
 
 The elements of the autotrader configuration are:
 
@@ -125,45 +127,47 @@ broadcast by the exchange simulator
 The market simulator is configured with a JSON file called "exchange.json".
 Here is an example:
 
-    {
-      "Engine": {
-        "MarketDataFile": "data/market_data.csv",
-        "MarketEventInterval": 0.05,
-        "MarketOpenDelay": 5.0,
-        "MatchEventsFile": "match_events.csv",
-        "ScoreBoardFile": "score_board.csv",
-        "Speed": 1.0,
-        "TickInterval": 0.25
-      },
-      "Execution": {
-        "host": "127.0.0.1",
-        "Port": 12345
-      },
-      "Fees": {
-        "Maker": -0.0001,
-        "Taker": 0.0002
-      },
-      "Information": {
-        "Type": "mmap",
-        "Name": "info.dat"
-      },
-      "Instrument": {
-        "EtfClamp": 0.002,
-        "TickSize": 1.00
-      },
-      "Limits": {
-        "ActiveOrderCountLimit": 10,
-        "ActiveVolumeLimit": 200,
-        "MessageFrequencyInterval": 1.0,
-        "MessageFrequencyLimit": 50,
-        "PositionLimit": 100
-      },
-      "Traders": {
-        "TraderOne": "secret",
-        "ExampleOne": "qwerty",
-        "ExampleTwo": "12345"
-      }
-    }
+```json
+{
+  "Engine": {
+    "MarketDataFile": "data/market_data.csv",
+    "MarketEventInterval": 0.05,
+    "MarketOpenDelay": 5.0,
+    "MatchEventsFile": "match_events.csv",
+    "ScoreBoardFile": "score_board.csv",
+    "Speed": 1.0,
+    "TickInterval": 0.25
+  },
+  "Execution": {
+    "host": "127.0.0.1",
+    "Port": 12345
+  },
+  "Fees": {
+    "Maker": -0.0001,
+    "Taker": 0.0002
+  },
+  "Information": {
+    "Type": "mmap",
+    "Name": "info.dat"
+  },
+  "Instrument": {
+    "EtfClamp": 0.002,
+    "TickSize": 1.00
+  },
+  "Limits": {
+    "ActiveOrderCountLimit": 10,
+    "ActiveVolumeLimit": 200,
+    "MessageFrequencyInterval": 1.0,
+    "MessageFrequencyLimit": 50,
+    "PositionLimit": 100
+  },
+  "Traders": {
+    "TraderOne": "secret",
+    "ExampleOne": "qwerty",
+    "ExampleTwo": "12345"
+  }
+}
+```
 
 The elements of the autotrader configuration are:
 

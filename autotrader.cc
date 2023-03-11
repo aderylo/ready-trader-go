@@ -109,11 +109,9 @@ void AutoTrader::UpdateSpread(unsigned long sequenceNumber)
     spreadMean = newSpreadMean;
     double zscore = (spread - spreadMean) / (sqrt(spreadVariance / (double)spreadCount));
 
-    if (sequenceNumber == maxSequenceNumber) {
-        zscoreHistory.push_back(zscore);
-        if (zscoreHistory.size() > MAX_HISTORY_LEN) {
-            zscoreHistory.erase(zscoreHistory.begin(), zscoreHistory.begin() + (MAX_HISTORY_LEN - MIN_HISTORY_LEN));
-        }
+    zscoreHistory.push_back(zscore);
+    if (zscoreHistory.size() > MAX_HISTORY_LEN) {
+        zscoreHistory.erase(zscoreHistory.begin(), zscoreHistory.begin() + (MAX_HISTORY_LEN - MIN_HISTORY_LEN));
     }
 }
 

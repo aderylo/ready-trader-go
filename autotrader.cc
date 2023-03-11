@@ -36,8 +36,8 @@ constexpr int MAX_ASK_NEAREST_TICK = MAXIMUM_ASK / TICK_SIZE_IN_CENTS * TICK_SIZ
 constexpr int MAX_HISTORY_LEN = 1000;
 constexpr int MIN_HISTORY_LEN = 500;
 constexpr int HEDGE_RATIO = 1;
-constexpr int ZSCORE_UPPER_THRESHOLD = 1;
-constexpr int ZSCORE_LOWER_THRESHOLD = -1;
+constexpr double ZSCORE_UPPER_THRESHOLD = 0.5;
+constexpr double ZSCORE_LOWER_THRESHOLD = -0.5;
 
 AutoTrader::AutoTrader(boost::asio::io_context &context) : BaseAutoTrader(context)
 {
@@ -150,13 +150,13 @@ void AutoTrader::OrderBookMessageHandler(Instrument instrument,
     unsigned long newAskPrice = 0;
     unsigned long newBidPrice = 0;
 
-    if (!futureAskPriceHistory.empty() && futureAskPriceHistory.back() != 0)
+    if (!etfAskPriceHistory.empty() && etfAskPriceHistory.back() != 0)
     {
-        newAskPrice = futureAskPriceHistory.back() + priceAdjustment;
+        newAskPrice = etfAskPriceHistory.back() + priceAdjustment;
     }
-    if (!futureBidPriceHistory.empty() && futureBidPriceHistory.back() != 0)
+    if (!etfBidPriceHistory.empty() && etfBidPriceHistory.back() != 0)
     {
-        newBidPrice = futureBidPriceHistory.back() + priceAdjustment;
+        newBidPrice = etfBidPriceHistory.back() + priceAdjustment;
     }
 
     if (mAskId != 0 && newAskPrice != 0 && newAskPrice != mAskPrice)

@@ -32,6 +32,8 @@ constexpr int POSITION_LIMIT = 100;
 constexpr int TICK_SIZE_IN_CENTS = 100;
 constexpr int MIN_BID_NEARST_TICK = (MINIMUM_BID + TICK_SIZE_IN_CENTS) / TICK_SIZE_IN_CENTS * TICK_SIZE_IN_CENTS;
 constexpr int MAX_ASK_NEAREST_TICK = MAXIMUM_ASK / TICK_SIZE_IN_CENTS * TICK_SIZE_IN_CENTS;
+constexpr int MAX_HISTORY_LEN = 1000;
+constexpr int MIN_HISTORY_LEN = 500;
 
 AutoTrader::AutoTrader(boost::asio::io_context &context) : BaseAutoTrader(context)
 {
@@ -60,6 +62,35 @@ void AutoTrader::HedgeFilledMessageHandler(unsigned long clientOrderId,
     RLOG(LG_AT, LogLevel::LL_INFO) << "hedge order " << clientOrderId << " filled for " << volume
                                    << " lots at $" << price << " average price in cents";
 }
+/** TODO: handle not in order sequence numbers; 
+ * 
+*/
+void AutoTrader::updateHistory(Instrument instrument,
+                               unsigned long sequenceNumber,
+                               const std::array<unsigned long, TOP_LEVEL_COUNT> &askPrices,
+                               const std::array<unsigned long, TOP_LEVEL_COUNT> &askVolumes,
+                               const std::array<unsigned long, TOP_LEVEL_COUNT> &bidPrices,
+                               const std::array<unsigned long, TOP_LEVEL_COUNT> &bidVolumes)
+{
+    if (instrument == Instrument::FUTURE)
+    {
+        etfBidPriceHistory.push_back(bidPrices[0]);
+        etfAskPriceHistory.push_back(askPrices[0]);
+    }
+    if (instrument == Instrument::ETF)
+    {
+        futureBidPriceHistory.push_back(bidPrices[0]);
+        futureAskPriceHistory.push_back(askPrices[0]);
+    }
+
+    for (std::vector<unsigned long> history : {etfBidPriceHistory, etfAskPriceHistory, futureBidPriceHistory, futureAskPriceHistory})
+    {
+        if (history.size() > MAX_HISTORY_LEN)
+        {
+            history.erase(history.begin(), history.begin() + (MAX_HISTORY_LEN - MIN_HISTORY_LEN));
+        }
+    }
+}
 
 void AutoTrader::OrderBookMessageHandler(Instrument instrument,
                                          unsigned long sequenceNumber,
@@ -74,9 +105,11 @@ void AutoTrader::OrderBookMessageHandler(Instrument instrument,
                                    << "; bid prices: " << bidPrices[0]
                                    << "; bid volumes: " << bidVolumes[0];
 
+    updateHistory(instrument, sequenceNumber, askPrices, askVolumes, bidPrices, bidVolumes);
+
     if (instrument == Instrument::FUTURE)
     {
-        unsigned long priceAdjustment = -(mPosition / LOT_SIZE) * TICK_SIZE_IN_CENTS;
+        unsigned long priceAdjustment = -(mPosition / LOT_SIZE) * TICK_SIZE_IN_CENTS; /// ?
         unsigned long newAskPrice = (askPrices[0] != 0) ? askPrices[0] + priceAdjustment : 0;
         unsigned long newBidPrice = (bidPrices[0] != 0) ? bidPrices[0] + priceAdjustment : 0;
 
@@ -85,7 +118,7 @@ void AutoTrader::OrderBookMessageHandler(Instrument instrument,
             SendCancelOrder(mAskId);
             mAskId = 0;
         }
-        if (mBidId != 0 && newBidPrice != 0 && newBidPrice != mBidPrice)
+        if (mBidId != 0 && newBidPrice != 0 && newBidPrice != mBidPrice) // if price changes for a future vs , cancel oldest order
         {
             SendCancelOrder(mBidId);
             mBidId = 0;
@@ -114,12 +147,12 @@ void AutoTrader::OrderFilledMessageHandler(unsigned long clientOrderId,
 {
     RLOG(LG_AT, LogLevel::LL_INFO) << "order " << clientOrderId << " filled for " << volume
                                    << " lots at $" << price << " cents";
-    if (mAsks.count(clientOrderId) == 1)
+    if (mAsks.count(clientOrderId) == 1) // sold an ETF, adjust positions
     {
         mPosition -= (long)volume;
         SendHedgeOrder(mNextMessageId++, Side::BUY, MAX_ASK_NEAREST_TICK, volume);
     }
-    else if (mBids.count(clientOrderId) == 1)
+    else if (mBids.count(clientOrderId) == 1) // bought an ETF, adjust positions
     {
         mPosition += (long)volume;
         SendHedgeOrder(mNextMessageId++, Side::SELL, MIN_BID_NEARST_TICK, volume);

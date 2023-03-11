@@ -100,10 +100,11 @@ void Application::Run(int argc, char* argv[])
         throw ReadyTraderGoError("application has no name");
     }
 
+    path = std::string(argv[0]);
     SetUpLogging();
     RLOG(LG_APP, LogLevel::LL_INFO) << "application started";
 
-    LoadConfig(mName + ".json");
+    LoadConfig( path + ".json");
 
     // Add signal handling (to handle Ctrl-C, for example)
     mSignals.add(SIGINT);
@@ -119,7 +120,7 @@ void Application::Run(int argc, char* argv[])
 
 void Application::SetUpLogging()
 {
-    std::string logFilename = mName + ".log";
+    std::string logFilename = path + ".log";
     std::ofstream logStream{logFilename, std::ios_base::app};
     if (!logStream)
     {

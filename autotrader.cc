@@ -36,6 +36,8 @@ constexpr int MAX_ASK_NEAREST_TICK = MAXIMUM_ASK / TICK_SIZE_IN_CENTS * TICK_SIZ
 constexpr int MAX_HISTORY_LEN = 1000;
 constexpr int MIN_HISTORY_LEN = 500;
 constexpr int HEDGE_RATIO = 1;
+constexpr int ZSCORE_UPPER_THRESHOLD = 1;
+constexpr int ZSCORE_LOWER_THRESHOLD = -1;
 
 AutoTrader::AutoTrader(boost::asio::io_context &context) : BaseAutoTrader(context)
 {
@@ -91,18 +93,29 @@ void AutoTrader::UpdateHistory(Instrument instrument,
 
 void AutoTrader::UpdateSpread(unsigned long sequenceNumber)
 {
+    if (etfBidPriceHistory.empty() || etfAskPriceHistory.empty() || futureBidPriceHistory.empty() || futureAskPriceHistory.empty())
+    {
+        return;
+    }
+
     unsigned long eftFutureSpread = etfBidPriceHistory.back() - HEDGE_RATIO * futureAskPriceHistory.back();
     unsigned long futureEtfSpread = futureBidPriceHistory.back() - HEDGE_RATIO * etfAskPriceHistory.back();
     double spread = (double)(eftFutureSpread - futureEtfSpread) / 2;
 
-    if (sequenceNumber == maxSequenceNumber) {
+    if (sequenceNumber == maxSequenceNumber)
+    {
         spreadHistory.push_back(spread);
-        if (spreadHistory.size() > MAX_HISTORY_LEN) {
+        if (spreadHistory.size() > MAX_HISTORY_LEN)
+        {
             spreadHistory.erase(spreadHistory.begin(), spreadHistory.begin() + (MAX_HISTORY_LEN - MIN_HISTORY_LEN));
         }
     }
 
-    spread = spreadHistory.back();
+    if (!spreadHistory.empty())
+    {
+        spread = spreadHistory.back();
+    }
+
     ++spreadCount;
     double newSpreadMean = spreadMean + (spread - spreadMean) / (double)spreadCount;
     spreadVariance += (spread - spreadMean) * (spread - newSpreadMean);
@@ -110,7 +123,8 @@ void AutoTrader::UpdateSpread(unsigned long sequenceNumber)
     double zscore = (spread - spreadMean) / (sqrt(spreadVariance / (double)spreadCount));
 
     zscoreHistory.push_back(zscore);
-    if (zscoreHistory.size() > MAX_HISTORY_LEN) {
+    if (zscoreHistory.size() > MAX_HISTORY_LEN)
+    {
         zscoreHistory.erase(zscoreHistory.begin(), zscoreHistory.begin() + (MAX_HISTORY_LEN - MIN_HISTORY_LEN));
     }
 }
@@ -132,32 +146,42 @@ void AutoTrader::OrderBookMessageHandler(Instrument instrument,
     UpdateHistory(instrument, askPrices, bidPrices);
     UpdateSpread(sequenceNumber);
 
-    if (instrument == Instrument::FUTURE)
+    unsigned long priceAdjustment = -(mPosition / LOT_SIZE) * TICK_SIZE_IN_CENTS;
+    unsigned long newAskPrice = 0;
+    unsigned long newBidPrice = 0;
+
+    if (!futureAskPriceHistory.empty() && futureAskPriceHistory.back() != 0)
     {
-        unsigned long priceAdjustment = -(mPosition / LOT_SIZE) * TICK_SIZE_IN_CENTS;
-        unsigned long newAskPrice = (askPrices[0] != 0) ? askPrices[0] + priceAdjustment : 0;
-        unsigned long newBidPrice = (bidPrices[0] != 0) ? bidPrices[0] + priceAdjustment : 0;
+        newAskPrice = futureAskPriceHistory.back() + priceAdjustment;
+    }
+    if (!futureBidPriceHistory.empty() && futureBidPriceHistory.back() != 0)
+    {
+        newBidPrice = futureBidPriceHistory.back() + priceAdjustment;
+    }
 
-        if (mAskId != 0 && newAskPrice != 0 && newAskPrice != mAskPrice)
-        {
-            SendCancelOrder(mAskId);
-            mAskId = 0;
-        }
-        if (mBidId != 0 && newBidPrice != 0 && newBidPrice != mBidPrice) // if price changes for a future vs , cancel oldest order
-        {
-            SendCancelOrder(mBidId);
-            mBidId = 0;
-        }
+    if (mAskId != 0 && newAskPrice != 0 && newAskPrice != mAskPrice)
+    {
+        SendCancelOrder(mAskId);
+        mAskId = 0;
+    }
+    if (mBidId != 0 && newBidPrice != 0 && newBidPrice != mBidPrice)
+    {
+        SendCancelOrder(mBidId);
+        mBidId = 0;
+    }
 
-        if (mAskId == 0 && newAskPrice != 0 && mPosition > -POSITION_LIMIT)
-        {
+    if (mAskId == 0 && newAskPrice != 0 && mPosition > -POSITION_LIMIT)
+    {
+        if (!zscoreHistory.empty() && zscoreHistory.back() != 0 && zscoreHistory.back() <= ZSCORE_LOWER_THRESHOLD) {
             mAskId = mNextMessageId++;
             mAskPrice = newAskPrice;
             SendInsertOrder(mAskId, Side::SELL, newAskPrice, LOT_SIZE, Lifespan::GOOD_FOR_DAY);
             mAsks.emplace(mAskId);
         }
-        if (mBidId == 0 && newBidPrice != 0 && mPosition < POSITION_LIMIT)
-        {
+    }
+    if (mBidId == 0 && newBidPrice != 0 && mPosition < POSITION_LIMIT)
+    {
+        if (!zscoreHistory.empty() && zscoreHistory.back() != 0 && zscoreHistory.back() >= ZSCORE_UPPER_THRESHOLD) {
             mBidId = mNextMessageId++;
             mBidPrice = newBidPrice;
             SendInsertOrder(mBidId, Side::BUY, newBidPrice, LOT_SIZE, Lifespan::GOOD_FOR_DAY);

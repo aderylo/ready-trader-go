@@ -101,6 +101,7 @@ private:
     unsigned long mBidPrice = 0;
     signed long mPosition = 0;
     double spreadMean = 0.0;
+    double spreadVariance = 0.0;
     unsigned long spreadCount = 0;
     std::unordered_set<unsigned long> mAsks;
     std::unordered_set<unsigned long> mBids;

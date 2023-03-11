@@ -99,7 +99,7 @@ void AutoTrader::UpdateSpread()
     // highest buy vs lowest sell
     unsigned long eftFutureSpread = etfBidPriceHistory.back() - futureAskPriceHistory.back();
     unsigned long futureEtfSpread = futureBidPriceHistory.back() - etfAskPriceHistory.back();
-    double spread = (double) (eftFutureSpread + futureEtfSpread) / 2;
+    double spread = (double)(eftFutureSpread + futureEtfSpread) / 2;
 
     spreadHistory.push_back(spread);
     if (spreadHistory.size() > MAX_HISTORY_LEN)
@@ -108,7 +108,9 @@ void AutoTrader::UpdateSpread()
     }
 
     ++spreadCount;
-    spreadMean = spreadMean + (spread - spreadMean) / spreadCount;
+    double newSpreadMean = spreadMean + (spread - spreadMean) / (double)spreadCount;
+    spreadVariance += (spread - spreadMean) * (spread - newSpreadMean);
+    spreadMean = newSpreadMean;
 }
 
 void AutoTrader::OrderBookMessageHandler(Instrument instrument,

@@ -65,15 +65,9 @@ void AutoTrader::HedgeFilledMessageHandler(unsigned long clientOrderId,
                                    << " lots at $" << price << " average price in cents";
 }
 
-/** TODO: handle not in order sequence numbers;
- *
- */
 void AutoTrader::UpdateHistory(Instrument instrument,
-                               unsigned long sequenceNumber,
                                const std::array<unsigned long, TOP_LEVEL_COUNT> &askPrices,
-                               const std::array<unsigned long, TOP_LEVEL_COUNT> &askVolumes,
-                               const std::array<unsigned long, TOP_LEVEL_COUNT> &bidPrices,
-                               const std::array<unsigned long, TOP_LEVEL_COUNT> &bidVolumes)
+                               const std::array<unsigned long, TOP_LEVEL_COUNT> &bidPrices)
 {
     if (instrument == Instrument::FUTURE)
     {
@@ -95,29 +89,31 @@ void AutoTrader::UpdateHistory(Instrument instrument,
     }
 }
 
-void AutoTrader::UpdateSpread()
+void AutoTrader::UpdateSpread(unsigned long sequenceNumber)
 {
-    // highest buy vs lowest sell
     unsigned long eftFutureSpread = etfBidPriceHistory.back() - HEDGE_RATIO * futureAskPriceHistory.back();
     unsigned long futureEtfSpread = futureBidPriceHistory.back() - HEDGE_RATIO * etfAskPriceHistory.back();
+    double spread = (double)(eftFutureSpread - futureEtfSpread) / 2;
 
-    double spread = (double)(eftFutureSpread + futureEtfSpread) / 2;
-    spreadHistory.push_back(spread);
-    if (spreadHistory.size() > MAX_HISTORY_LEN)
-    {
-        spreadHistory.erase(spreadHistory.begin(), spreadHistory.begin() + (MAX_HISTORY_LEN - MIN_HISTORY_LEN));
+    if (sequenceNumber == maxSequenceNumber) {
+        spreadHistory.push_back(spread);
+        if (spreadHistory.size() > MAX_HISTORY_LEN) {
+            spreadHistory.erase(spreadHistory.begin(), spreadHistory.begin() + (MAX_HISTORY_LEN - MIN_HISTORY_LEN));
+        }
     }
 
+    spread = spreadHistory.back();
     ++spreadCount;
     double newSpreadMean = spreadMean + (spread - spreadMean) / (double)spreadCount;
     spreadVariance += (spread - spreadMean) * (spread - newSpreadMean);
     spreadMean = newSpreadMean;
-
     double zscore = (spread - spreadMean) / (sqrt(spreadVariance / (double)spreadCount));
-    zscoreHistory.push_back(zscore);
-    if (zscoreHistory.size() > MAX_HISTORY_LEN)
-    {
-        zscoreHistory.erase(zscoreHistory.begin(), zscoreHistory.begin() + (MAX_HISTORY_LEN - MIN_HISTORY_LEN));
+
+    if (sequenceNumber == maxSequenceNumber) {
+        zscoreHistory.push_back(zscore);
+        if (zscoreHistory.size() > MAX_HISTORY_LEN) {
+            zscoreHistory.erase(zscoreHistory.begin(), zscoreHistory.begin() + (MAX_HISTORY_LEN - MIN_HISTORY_LEN));
+        }
     }
 }
 
@@ -134,8 +130,9 @@ void AutoTrader::OrderBookMessageHandler(Instrument instrument,
                                    << "; bid prices: " << bidPrices[0]
                                    << "; bid volumes: " << bidVolumes[0];
 
-    UpdateHistory(instrument, sequenceNumber, askPrices, askVolumes, bidPrices, bidVolumes);
-    UpdateSpread(); 
+    maxSequenceNumber = std::max(sequenceNumber, maxSequenceNumber);
+    UpdateHistory(instrument, askPrices, bidPrices);
+    UpdateSpread(sequenceNumber);
 
     if (instrument == Instrument::FUTURE)
     {

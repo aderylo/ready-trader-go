@@ -103,6 +103,7 @@ private:
     double spreadMean = 0.0;
     double spreadVariance = 0.0;
     unsigned long spreadCount = 0;
+    unsigned long maxSequenceNumber = 0;
     std::unordered_set<unsigned long> mAsks;
     std::unordered_set<unsigned long> mBids;
     std::vector<unsigned long> etfBidPriceHistory;
@@ -113,13 +114,9 @@ private:
     std::vector<double> zscoreHistory;
 
     void UpdateHistory(ReadyTraderGo::Instrument instrument,
-                       unsigned long sequenceNumber,
                        const std::array<unsigned long, ReadyTraderGo::TOP_LEVEL_COUNT> &askPrices,
-                       const std::array<unsigned long, ReadyTraderGo::TOP_LEVEL_COUNT> &askVolumes,
-                       const std::array<unsigned long, ReadyTraderGo::TOP_LEVEL_COUNT> &bidPrices,
-                       const std::array<unsigned long, ReadyTraderGo::TOP_LEVEL_COUNT> &bidVolumes);
-
-    void UpdateSpread();
+                       const std::array<unsigned long, ReadyTraderGo::TOP_LEVEL_COUNT> &bidPrices);
+    void UpdateSpread(unsigned long sequenceNumber);
 };
 
 #endif // CPPREADY_TRADER_GO_AUTOTRADER_H

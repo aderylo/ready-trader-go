@@ -34,6 +34,7 @@ constexpr int MIN_BID_NEARST_TICK = (MINIMUM_BID + TICK_SIZE_IN_CENTS) / TICK_SI
 constexpr int MAX_ASK_NEAREST_TICK = MAXIMUM_ASK / TICK_SIZE_IN_CENTS * TICK_SIZE_IN_CENTS;
 constexpr int MAX_HISTORY_LEN = 1000;
 constexpr int MIN_HISTORY_LEN = 500;
+constexpr int HEDGE_RATIO = 1;
 
 AutoTrader::AutoTrader(boost::asio::io_context &context) : BaseAutoTrader(context)
 {
@@ -62,10 +63,10 @@ void AutoTrader::HedgeFilledMessageHandler(unsigned long clientOrderId,
     RLOG(LG_AT, LogLevel::LL_INFO) << "hedge order " << clientOrderId << " filled for " << volume
                                    << " lots at $" << price << " average price in cents";
 }
-/** TODO: handle not in order sequence numbers; 
- * 
-*/
-void AutoTrader::updateHistory(Instrument instrument,
+/** TODO: handle not in order sequence numbers;
+ *
+ */
+void AutoTrader::UpdateHistory(Instrument instrument,
                                unsigned long sequenceNumber,
                                const std::array<unsigned long, TOP_LEVEL_COUNT> &askPrices,
                                const std::array<unsigned long, TOP_LEVEL_COUNT> &askVolumes,
@@ -92,6 +93,15 @@ void AutoTrader::updateHistory(Instrument instrument,
     }
 }
 
+void AutoTrader::UpdateSpread()
+{
+    // highest buy vs lowest sell
+    unsigned long eftFutureSpread = etfBidPriceHistory.back() - futureAskPriceHistory.back();
+    unsigned long futureEtfSpead = futureBidPriceHistory.back() - etfAskPriceHistory.back();
+
+    spreadHistory.push_back((eftFutureSpread + futureEtfSpead) / 2);
+}
+
 void AutoTrader::OrderBookMessageHandler(Instrument instrument,
                                          unsigned long sequenceNumber,
                                          const std::array<unsigned long, TOP_LEVEL_COUNT> &askPrices,
@@ -105,7 +115,8 @@ void AutoTrader::OrderBookMessageHandler(Instrument instrument,
                                    << "; bid prices: " << bidPrices[0]
                                    << "; bid volumes: " << bidVolumes[0];
 
-    updateHistory(instrument, sequenceNumber, askPrices, askVolumes, bidPrices, bidVolumes);
+    UpdateHistory(instrument, sequenceNumber, askPrices, askVolumes, bidPrices, bidVolumes);
+    UpdateSpread(); 
 
     if (instrument == Instrument::FUTURE)
     {

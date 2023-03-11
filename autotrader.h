@@ -106,13 +106,16 @@ private:
     std::vector<unsigned long> etfAskPriceHistory;
     std::vector<unsigned long> futureBidPriceHistory;
     std::vector<unsigned long> futureAskPriceHistory;
+    std::vector<unsigned long> spreadHistory; 
 
-    void updateHistory(ReadyTraderGo::Instrument instrument,
+    void UpdateHistory(ReadyTraderGo::Instrument instrument,
                        unsigned long sequenceNumber,
                        const std::array<unsigned long, ReadyTraderGo::TOP_LEVEL_COUNT> &askPrices,
                        const std::array<unsigned long, ReadyTraderGo::TOP_LEVEL_COUNT> &askVolumes,
                        const std::array<unsigned long, ReadyTraderGo::TOP_LEVEL_COUNT> &bidPrices,
-                       const std::array<unsigned long, ReadyTraderGo::TOP_LEVEL_COUNT> &bidVolumes); 
+                       const std::array<unsigned long, ReadyTraderGo::TOP_LEVEL_COUNT> &bidVolumes);
+
+    void UpdateSpread();
 };
 
 #endif // CPPREADY_TRADER_GO_AUTOTRADER_H

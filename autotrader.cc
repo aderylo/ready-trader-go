@@ -63,6 +63,7 @@ void AutoTrader::HedgeFilledMessageHandler(unsigned long clientOrderId,
     RLOG(LG_AT, LogLevel::LL_INFO) << "hedge order " << clientOrderId << " filled for " << volume
                                    << " lots at $" << price << " average price in cents";
 }
+
 /** TODO: handle not in order sequence numbers;
  *
  */
@@ -75,13 +76,13 @@ void AutoTrader::UpdateHistory(Instrument instrument,
 {
     if (instrument == Instrument::FUTURE)
     {
-        etfBidPriceHistory.push_back(bidPrices[0]);
-        etfAskPriceHistory.push_back(askPrices[0]);
+        futureBidPriceHistory.push_back(bidPrices[0]);
+        futureAskPriceHistory.push_back(askPrices[0]);
     }
     if (instrument == Instrument::ETF)
     {
-        futureBidPriceHistory.push_back(bidPrices[0]);
-        futureAskPriceHistory.push_back(askPrices[0]);
+        etfBidPriceHistory.push_back(bidPrices[0]);
+        etfAskPriceHistory.push_back(askPrices[0]);
     }
 
     for (std::vector<unsigned long> history : {etfBidPriceHistory, etfAskPriceHistory, futureBidPriceHistory, futureAskPriceHistory})
@@ -97,9 +98,17 @@ void AutoTrader::UpdateSpread()
 {
     // highest buy vs lowest sell
     unsigned long eftFutureSpread = etfBidPriceHistory.back() - futureAskPriceHistory.back();
-    unsigned long futureEtfSpead = futureBidPriceHistory.back() - etfAskPriceHistory.back();
+    unsigned long futureEtfSpread = futureBidPriceHistory.back() - etfAskPriceHistory.back();
+    double spread = (double) (eftFutureSpread + futureEtfSpread) / 2;
 
-    spreadHistory.push_back((eftFutureSpread + futureEtfSpead) / 2);
+    spreadHistory.push_back(spread);
+    if (spreadHistory.size() > MAX_HISTORY_LEN)
+    {
+        spreadHistory.erase(spreadHistory.begin(), spreadHistory.begin() + (MAX_HISTORY_LEN - MIN_HISTORY_LEN));
+    }
+
+    ++spreadCount;
+    spreadMean = spreadMean + (spread - spreadMean) / spreadCount;
 }
 
 void AutoTrader::OrderBookMessageHandler(Instrument instrument,

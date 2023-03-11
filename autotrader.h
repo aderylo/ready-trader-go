@@ -100,13 +100,15 @@ private:
     unsigned long mBidId = 0;
     unsigned long mBidPrice = 0;
     signed long mPosition = 0;
+    double spreadMean = 0.0;
+    unsigned long spreadCount = 0;
     std::unordered_set<unsigned long> mAsks;
     std::unordered_set<unsigned long> mBids;
     std::vector<unsigned long> etfBidPriceHistory;
     std::vector<unsigned long> etfAskPriceHistory;
     std::vector<unsigned long> futureBidPriceHistory;
     std::vector<unsigned long> futureAskPriceHistory;
-    std::vector<unsigned long> spreadHistory; 
+    std::vector<double> spreadHistory;
 
     void UpdateHistory(ReadyTraderGo::Instrument instrument,
                        unsigned long sequenceNumber,

@@ -27,3 +27,4 @@ exchange.log
 info.dat
 match_events.csv
 score_board.csv
+nohup.out

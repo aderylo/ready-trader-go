@@ -16,6 +16,7 @@
 //     License along with Ready Trader Go.  If not, see
 //     <https://www.gnu.org/licenses/>.
 #include <array>
+#include <cmath>
 
 #include <boost/asio/io_context.hpp>
 
@@ -97,10 +98,10 @@ void AutoTrader::UpdateHistory(Instrument instrument,
 void AutoTrader::UpdateSpread()
 {
     // highest buy vs lowest sell
-    unsigned long eftFutureSpread = etfBidPriceHistory.back() - futureAskPriceHistory.back();
-    unsigned long futureEtfSpread = futureBidPriceHistory.back() - etfAskPriceHistory.back();
-    double spread = (double)(eftFutureSpread + futureEtfSpread) / 2;
+    unsigned long eftFutureSpread = etfBidPriceHistory.back() - HEDGE_RATIO * futureAskPriceHistory.back();
+    unsigned long futureEtfSpread = futureBidPriceHistory.back() - HEDGE_RATIO * etfAskPriceHistory.back();
 
+    double spread = (double)(eftFutureSpread + futureEtfSpread) / 2;
     spreadHistory.push_back(spread);
     if (spreadHistory.size() > MAX_HISTORY_LEN)
     {
@@ -111,6 +112,13 @@ void AutoTrader::UpdateSpread()
     double newSpreadMean = spreadMean + (spread - spreadMean) / (double)spreadCount;
     spreadVariance += (spread - spreadMean) * (spread - newSpreadMean);
     spreadMean = newSpreadMean;
+
+    double zscore = (spread - spreadMean) / (sqrt(spreadVariance / (double)spreadCount));
+    zscoreHistory.push_back(zscore);
+    if (zscoreHistory.size() > MAX_HISTORY_LEN)
+    {
+        zscoreHistory.erase(zscoreHistory.begin(), zscoreHistory.begin() + (MAX_HISTORY_LEN - MIN_HISTORY_LEN));
+    }
 }
 
 void AutoTrader::OrderBookMessageHandler(Instrument instrument,
@@ -131,7 +139,7 @@ void AutoTrader::OrderBookMessageHandler(Instrument instrument,
 
     if (instrument == Instrument::FUTURE)
     {
-        unsigned long priceAdjustment = -(mPosition / LOT_SIZE) * TICK_SIZE_IN_CENTS; /// ?
+        unsigned long priceAdjustment = -(mPosition / LOT_SIZE) * TICK_SIZE_IN_CENTS;
         unsigned long newAskPrice = (askPrices[0] != 0) ? askPrices[0] + priceAdjustment : 0;
         unsigned long newBidPrice = (bidPrices[0] != 0) ? bidPrices[0] + priceAdjustment : 0;
 

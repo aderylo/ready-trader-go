@@ -110,6 +110,7 @@ private:
     std::vector<unsigned long> futureBidPriceHistory;
     std::vector<unsigned long> futureAskPriceHistory;
     std::vector<double> spreadHistory;
+    std::vector<double> zscoreHistory;
 
     void UpdateHistory(ReadyTraderGo::Instrument instrument,
                        unsigned long sequenceNumber,

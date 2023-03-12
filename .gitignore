@@ -29,3 +29,4 @@ match_events.csv
 score_board.csv
 nohup.out
 *.log
+tests/envs

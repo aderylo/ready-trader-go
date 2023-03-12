@@ -28,8 +28,17 @@ link_directories(${Boost_LIBRARY_DIRS})
 add_subdirectory(libs)
 include_directories(${PROJECT_SOURCE_DIR}/libs)
 
+# autotrader under developement
 add_executable(autotrader main.cc autotrader.cc autotrader.h)
 target_link_libraries(autotrader PRIVATE ready_trader_go_lib ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+
+# pairs trading 
+add_executable(pairs traders/pairs/main.cc traders/pairs/autotrader.cc traders/pairs/autotrader.h)
+target_link_libraries(pairs PRIVATE ready_trader_go_lib ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+
+# default shipped by optiver  
+add_executable(default traders/default/main.cc traders/default/autotrader.cc traders/default/autotrader.h)
+target_link_libraries(default PRIVATE ready_trader_go_lib ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 
 if(${Boost_UNIT_TEST_FRAMEWORK_FOUND})
     if(IS_DIRECTORY ${PROJECT_SOURCE_DIR}/unit_tests)

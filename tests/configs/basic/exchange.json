@@ -10,7 +10,7 @@
   },
   "Execution": {
     "Host": "127.0.0.1",
-    "Port": 12345
+    "Port": 12343
   },
   "Fees": {
     "Maker": -0.0001,
@@ -18,7 +18,7 @@
   },
   "Hud": {
     "Host": "127.0.0.1",
-    "Port": 12347
+    "Port": 8000
   },
   "Information": {
     "Type": "mmap",

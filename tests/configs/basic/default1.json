@@ -1,11 +1,11 @@
 {
   "Execution": {
     "Host": "127.0.0.1",
-    "Port": 12345
+    "Port": 12343
   },
   "Information": {
     "Type": "mmap",
-    "Name": "../../logs/basic/info.dat"
+    "Name": "../../logs/single/info.dat"
   },
   "TeamName": "TraderTwo",
   "Secret": "secret"

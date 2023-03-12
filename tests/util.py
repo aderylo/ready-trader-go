@@ -4,7 +4,6 @@ import pathlib
 import json
 import shutil
 import socket
-from typing import Optional
 
 MAX_TEAMS = 8
 
@@ -25,7 +24,8 @@ def configure_exchange(
     test_env: pathlib.Path,
     data_source: pathlib.Path,
     execution_port: int,
-    hdu_port: Optional[int],
+    hdu_port: int,
+    speed: int = 10.0,
 ):
     exchange_config_file = test_env / "exchange.json"
     with exchange_config_file.open("r") as f:
@@ -38,8 +38,11 @@ def configure_exchange(
     config["Engine"]["MatchEventsFile"] = str(match_events_path)
     config["Engine"]["ScoreBoardFile"] = str(score_board_path)
     config["Engine"]["MarketDataFile"] = str(data_source)
+    config["Engine"]["Speed"] = speed
+
     config["Information"]["Name"] = str(info_path)
     config["Execution"]["Port"] = execution_port
+
     if hdu_port is not None:
         config["Hud"]["Port"] = hdu_port
 
@@ -76,11 +79,11 @@ def create_test_env(
     return test_env
 
 
-def setup_test_env(test_env: pathlib.Path, data_source: pathlib.Path) -> None:
+def setup_test_env(test_env: pathlib.Path, data_source: pathlib.Path, speed) -> None:
     execution_port = get_free_port()
     hdu_port = get_free_port()
 
-    configure_exchange(test_env, data_source, execution_port, hdu_port)
+    configure_exchange(test_env, data_source, execution_port, hdu_port, speed)
     configure_traders(test_env=test_env)
 
 

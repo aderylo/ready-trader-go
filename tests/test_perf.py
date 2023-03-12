@@ -14,11 +14,11 @@ TEAM_NAME = "PurpleHaze"
         pathlib.Path("data/market_data4.csv"),
     ],
 )
-def test_single(market_data: pathlib.Path, run_with_hdu):
+def test_single(market_data: pathlib.Path, run_with_hdu, speed):
     test_env_path = create_test_env("tests/configs/single", "single", market_data.stem)
     score_board_path = test_env_path / "score_board.csv"
 
-    setup_test_env(test_env_path, market_data)
+    setup_test_env(test_env_path, market_data, speed)
     run_test(test_env_path, run_with_hdu)
 
     assert winner(score_board_path) == TEAM_NAME
@@ -33,11 +33,11 @@ def test_single(market_data: pathlib.Path, run_with_hdu):
         pathlib.Path("data/market_data4.csv"),
     ],
 )
-def test_basic(market_data: pathlib.Path, run_with_hdu):
+def test_basic(market_data: pathlib.Path, run_with_hdu, speed):
     test_env_path = create_test_env("tests/configs/basic", "basic", market_data.stem)
     score_board_path = test_env_path / "score_board.csv"
 
-    setup_test_env(test_env_path, market_data)
+    setup_test_env(test_env_path, market_data, speed)
     run_test(test_env_path, run_with_hdu)
 
     assert winner(score_board_path) == TEAM_NAME

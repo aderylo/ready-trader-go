@@ -87,7 +87,14 @@ After compiling your new autotrader, just run following command from main direct
 ```
 pytest -n 6 
 ```
-Where parameter 'n' sets number of concurrent tests to be run. If you would like to display GUIs for each simulation you can enable them in with a custom flag in a following manner: 
+Where parameter 'n' sets number of concurrent tests to be run. There are a few additional
+custom flags that one can pass when running tests: 
+```
+--hdu True // this flags enables HDUs during testing, by default it set to False.
+--speed 2.0 // this flag changes speed, by default speed is set 10.0
+```
+
+If you would like to display GUIs for each simulation you can enable them in with a custom flag in a following manner: 
 ```
 pytest -n 6 --hdu True
 ```
@@ -99,6 +106,7 @@ pytest -n 6 --hdu True
   FAILED tests/test_perf.py::test_single[market_data2] - pandas.errors.EmptyDataError: No columns to parse from file
   ```
   Just wait a bit (aprox. 1 minute and review, score_boards manually). Atomatic test reports are in the todo list :) 
+* It might be the case that algorithm is under performing due to CPU load, if speed is set to > 1.0 (by default is set to 10.0) then decrease it to check if that is the cause of your vows.  
 
 
 ## What's in this archive?

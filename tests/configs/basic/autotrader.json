@@ -5,8 +5,8 @@
   },
   "Information": {
     "Type": "mmap",
-    "Name": "../../logs/basic/info.dat"
+    "Name": "info.dat"
   },
-  "TeamName": "PrupleHaze",
+  "TeamName": "PurpleHaze",
   "Secret": "secret"
 }

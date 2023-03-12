@@ -5,7 +5,7 @@
   },
   "Information": {
     "Type": "mmap",
-    "Name": "../../logs/single/info.dat"
+    "Name": "info.dat"
   },
   "TeamName": "TraderTwo",
   "Secret": "secret"

@@ -4,6 +4,7 @@ import pathlib
 import json
 import shutil
 import socket
+from models import Trader
 
 MAX_TEAMS = 8
 
@@ -77,6 +78,12 @@ def create_test_env(
 
     shutil.copytree(test_config_dir, test_env)
     return test_env
+
+
+def populate_test_env(test_env: pathlib.Path, traders: list[Trader]):
+    for trader in traders:
+        trader.save_to_json(test_env)
+        trader.copy_binary(test_env)
 
 
 def setup_test_env(test_env: pathlib.Path, data_source: pathlib.Path, speed) -> None:

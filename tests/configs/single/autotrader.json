@@ -1,0 +1,12 @@
+{
+  "Execution": {
+    "Host": "127.0.0.1",
+    "Port": 12344
+  },
+  "Information": {
+    "Type": "mmap",
+    "Name": "info.dat"
+  },
+  "TeamName": "PurpleHaze",
+  "Secret": "secret"
+}

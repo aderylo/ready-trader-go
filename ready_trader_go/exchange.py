@@ -129,8 +129,8 @@ def setup(app: Application) -> Controller:
     return controller
 
 
-def main():
-    app = Application("exchange", __exchange_config_validator)
+def main(config_path: str):
+    app = Application("exchange", __exchange_config_validator, config_path)
     controller: Controller = setup(app)
     app.run()
     controller.cleanup()

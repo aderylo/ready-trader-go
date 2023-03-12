@@ -67,6 +67,7 @@ private:
 
     boost::asio::io_context mContext;
     std::string mName;
+    std::string path; 
     boost::asio::signal_set mSignals;
 
     using sink_t = boost::log::sinks::asynchronous_sink<

@@ -4,6 +4,7 @@ from util import create_test_env, setup_test_env, run_test, winner
 
 TEAM_NAME = "PurpleHaze"
 
+
 @pytest.mark.parametrize(
     "market_data",
     [
@@ -40,9 +41,3 @@ def test_basic(market_data: pathlib.Path, run_with_hdu):
     run_test(test_env_path, run_with_hdu)
 
     assert winner(score_board_path) == TEAM_NAME
-
-def test_lol():
-    import time
-
-    time.sleep(5)
-    assert True == True

@@ -85,8 +85,22 @@ pip3 install -r requirements-tests.txt
 ```
 After compiling your new autotrader, just run following command from main directory: 
 ```
-pytest -n 6
+pytest -n 6 
 ```
+Where parameter 'n' sets number of concurrent tests to be run. If you would like to display GUIs for each simulation you can enable them in with a custom flag in a following manner: 
+```
+pytest -n 6 --hdu True
+```
+
+### Additional remarks
+* Each tests takes about 2 minutes so given assigned number of workers one can easily calculate runtime. 
+* Test might fail because score_board.csv is not populated in time do to the high CPU utilization. Therefore, if tests return with errors like:
+  ```
+  FAILED tests/test_perf.py::test_single[market_data2] - pandas.errors.EmptyDataError: No columns to parse from file
+  ```
+  Just wait a bit (aprox. 1 minute and review, score_boards manually). Atomatic test reports are in the todo list :) 
+
+
 ## What's in this archive?
 
 This archive contains everything needed to run a Ready Trader Go *match*

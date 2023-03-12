@@ -8,6 +8,7 @@ from typing import Optional
 
 MAX_TEAMS = 8
 
+
 def get_free_port():
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind(("localhost", 0))
@@ -83,7 +84,7 @@ def setup_test_env(test_env: pathlib.Path, data_source: pathlib.Path) -> None:
     configure_traders(test_env=test_env)
 
 
-def run_test(test_env: pathlib.Path):
+def run_test(test_env: pathlib.Path, run_with_hdu: bool = False):
     config_path = test_env / "exchange.json"
     config = load_exchange_config(test_env)
 
@@ -95,14 +96,19 @@ def run_test(test_env: pathlib.Path):
         "python3",
         "rtg.py",
         "run",
-        f"--port={hdu_port}",
         f"--config={str(config_path)}",
     ] + traders
+
+    if run_with_hdu is False:
+        command += ["--hdu=0"]
+    else:
+        command += [f"--port={hdu_port}"]
 
     try:
         subprocess.run(command, timeout=120)
     except subprocess.TimeoutExpired:
         pass
+
 
 def winner(score_board_path: pathlib.Path) -> str:
     df = pd.read_csv(str(score_board_path))

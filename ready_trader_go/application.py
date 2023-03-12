@@ -28,7 +28,7 @@ from typing import Callable, Optional
 class Application(object):
     """Standard application setup."""
 
-    def __init__(self, name: str, config_validator: Optional[Callable] = None):
+    def __init__(self, name: str, config_validator: Optional[Callable] = None, config_path: Optional[str] = None):
         """Initialise a new instance of the Application class."""
         self.event_loop: asyncio.AbstractEventLoop = asyncio.get_event_loop()
         self.logger = logging.getLogger("APP")
@@ -45,7 +45,11 @@ class Application(object):
             pass
 
         self.config = None
-        config_path = pathlib.Path(name + ".json")
+        if config_path is None: 
+            config_path = pathlib.Path(name + ".json")
+        else: 
+            config_path =  pathlib.Path(config_path)
+
         if config_path.exists():
             with config_path.open("r") as config:
                 self.config = json.load(config)

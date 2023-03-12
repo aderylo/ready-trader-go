@@ -23,7 +23,7 @@ import string
 import sys
 import time
 
-from typing import Any, Mapping, Tuple
+from typing import Any, Mapping, Tuple, Optional
 
 from PySide6 import QtGui, QtWidgets
 from PySide6.QtCore import Qt
@@ -50,8 +50,14 @@ def __create_application() -> QtWidgets.QApplication:
     return app
 
 
-def __read_exchange_config() -> Tuple[float, float]:
-    config_path = pathlib.Path(EXCHANGE_CONFIG_PATH)
+def __read_exchange_config(exchange_config_path : Optional[str]) -> Tuple[float, float]:
+    config_path = None
+
+    if exchange_config_path is not None:
+        config_path = pathlib.Path(exchange_config_path)
+    else:
+        config_path = pathlib.Path(EXCHANGE_CONFIG_PATH)
+
     if config_path.exists():
         with config_path.open("r") as config:
             config = json.load(config)
@@ -109,10 +115,10 @@ def replay(path: pathlib.Path):
     return app.exec_()
 
 
-def main(host: str, port: int):
+def main(host: str, port: int, config_path: Optional[str]):
     app = __create_application()
     splash = __show_splash()
-    etf_clamp, tick_size = __read_exchange_config()
+    etf_clamp, tick_size = __read_exchange_config(config_path)
     time.sleep(1)
     event_source = LiveEventSource(host, port, etf_clamp, tick_size)
     window = __show_main_window(splash, event_source)

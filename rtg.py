@@ -71,7 +71,7 @@ def run(args) -> None:
             return
 
     with multiprocessing.Pool(len(args.autotrader) + 2, maxtasksperchild=1) as pool:
-        exchange = pool.apply_async(ready_trader_go.exchange.main,
+        exchange = pool.apply_async(ready_trader_go.exchange.main, (args.config,),
                                     error_callback=lambda e: on_error("The exchange simulator", e))
 
         # Give the exchange simulator a chance to start up.
@@ -90,7 +90,7 @@ def run(args) -> None:
             no_heads_up_display()
             exchange.get()
         else:
-            hud_main(args.host, args.port)
+            hud_main(args.host, args.port, args.config)
 
 
 def main() -> None:
@@ -108,7 +108,9 @@ def main() -> None:
     run_parser.add_argument("--port", default=12347,
                             help="port number of the exchange simulator (default 12347)")
     run_parser.add_argument("--hdu", default="True",
-                            help="port number of the exchange simulator (default 12347)")
+                            help="set to False if intending to run simulator without GUI")
+    run_parser.add_argument("--config", default=None,
+                            help="set to False if intending to run simulator without GUI")
     run_parser.add_argument("autotrader", nargs="*", type=pathlib.Path,
                             help="auto-traders to include in the match")
     run_parser.set_defaults(func=run)

@@ -77,6 +77,16 @@ For example:
 python3 rtg.py run autotrader
 ```
 
+## Tests
+In order to reliabiliy compare between various trading strategies, we created 
+a performance test suite. You have to install a few dependencies in order to run tests. 
+```
+pip3 install -r requirements-tests.txt
+```
+After compiling your new autotrader, just run following command from main directory: 
+```
+pytest -n 6
+```
 ## What's in this archive?
 
 This archive contains everything needed to run a Ready Trader Go *match*

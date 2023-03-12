@@ -86,7 +86,7 @@ def run(args) -> None:
                 pool.apply_async(subprocess.run, ([resolved],), {"check": True, "cwd": resolved.parent},
                                  error_callback=lambda e: on_error("Auto-trader '%s'" % path, e))
 
-        if hud_main is None or args.hdu == "False":
+        if hud_main is None or args.hdu == 0:
             no_heads_up_display()
             exchange.get()
         else:
@@ -105,12 +105,13 @@ def main() -> None:
     # to use '127.0.0.1' here.
     run_parser.add_argument("--host", default="127.0.0.1",
                             help="host name of the exchange simulator (default '127.0.0.1')")
-    run_parser.add_argument("--port", default=12347,
+    run_parser.add_argument("--port", default=12347, type=int, 
                             help="port number of the exchange simulator (default 12347)")
-    run_parser.add_argument("--hdu", default="True",
-                            help="set to False if intending to run simulator without GUI")
+    run_parser.add_argument("--hdu", default=1, type=int,
+                            help="set to 0 if intending to run simulator without GUI")
     run_parser.add_argument("--config", default=None,
-                            help="set to False if intending to run simulator without GUI")
+                            help="""provide path to exchange config file, if not intending 
+                            to use exchange.json form main directory""")
     run_parser.add_argument("autotrader", nargs="*", type=pathlib.Path,
                             help="auto-traders to include in the match")
     run_parser.set_defaults(func=run)

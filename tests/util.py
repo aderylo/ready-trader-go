@@ -2,11 +2,12 @@ import subprocess
 import pandas as pd
 import pathlib
 import json
-import shutil
 import socket
-from models import Trader
+import shutil
+from models import Trader, _Exchange, _Engine, _Information, _Execution, _Hud
 
 MAX_TEAMS = 8
+TEST_ENVS_DIR = "tests/envs"
 
 
 def get_free_port():
@@ -24,31 +25,25 @@ def load_exchange_config(test_env: pathlib.Path) -> dict:
 def configure_exchange(
     test_env: pathlib.Path,
     data_source: pathlib.Path,
+    traders: list[Trader],
     execution_port: int,
     hdu_port: int,
     speed: int = 10.0,
 ):
-    exchange_config_file = test_env / "exchange.json"
-    with exchange_config_file.open("r") as f:
-        config = json.load(f)
+    engine = _Engine(
+        MarketDataFile=str(data_source),
+        MatchEventsFile=str(test_env / "match_events.csv"),
+        ScoreBoardFile=str(test_env / "score_board.csv"),
+        Speed=speed,
+    )
+    info = _Information(Name=str(test_env / "info.dat"))
+    execution = _Execution(Port=execution_port)
+    hud = _Hud(Port=hdu_port)
+    exchange = _Exchange(
+        Engine=engine, Information=info, Execution=execution, Hud=hud, Traders=traders
+    )
 
-    match_events_path = test_env / "match_events.csv"
-    score_board_path = test_env / "score_board.csv"
-    info_path = test_env / "info.dat"
-
-    config["Engine"]["MatchEventsFile"] = str(match_events_path)
-    config["Engine"]["ScoreBoardFile"] = str(score_board_path)
-    config["Engine"]["MarketDataFile"] = str(data_source)
-    config["Engine"]["Speed"] = speed
-
-    config["Information"]["Name"] = str(info_path)
-    config["Execution"]["Port"] = execution_port
-
-    if hdu_port is not None:
-        config["Hud"]["Port"] = hdu_port
-
-    with exchange_config_file.open("w") as f:
-        json.dump(config, f, indent=2, separators=(",", ": "))
+    exchange.save_config(test_env)
 
 
 def configure_traders(test_env: pathlib.Path):
@@ -67,17 +62,16 @@ def configure_traders(test_env: pathlib.Path):
             json.dump(config, f, indent=2, separators=(",", ": "))
 
 
-def create_test_env(
-    test_config_dir: pathlib.Path, test_name: str, test_data_name: str
-) -> pathlib.Path:
+def create_test_env(test_name: str, test_data_name: str) -> pathlib.Path:
     # Generate test env path
-    test_env = pathlib.Path(f"tests/envs/{test_name}/{test_data_name}")
-    # Remove the destination directory if it already exists
-    if shutil.os.path.exists(test_env):
-        shutil.rmtree(test_env)
+    test_env_path = pathlib.Path(f"{TEST_ENVS_DIR}/{test_name}/{test_data_name}")
 
-    shutil.copytree(test_config_dir, test_env)
-    return test_env
+    if test_env_path.exists():
+        shutil.rmtree(test_env_path)
+
+    test_env_path.mkdir(parents=True)
+
+    return test_env_path
 
 
 def populate_test_env(test_env: pathlib.Path, traders: list[Trader]):
@@ -86,11 +80,23 @@ def populate_test_env(test_env: pathlib.Path, traders: list[Trader]):
         trader.copy_binary(test_env)
 
 
-def setup_test_env(test_env: pathlib.Path, data_source: pathlib.Path, speed) -> None:
+def setup_test_env(
+    test_env: pathlib.Path,
+    data_source: pathlib.Path,
+    speed: float,
+    traders: list[Trader],
+) -> None:
     execution_port = get_free_port()
     hdu_port = get_free_port()
 
-    configure_exchange(test_env, data_source, execution_port, hdu_port, speed)
+    configure_exchange(
+        test_env=test_env,
+        data_source=data_source,
+        execution_port=execution_port,
+        hdu_port=hdu_port,
+        speed=speed,
+        traders=traders,
+    )
     configure_traders(test_env=test_env)
 
 

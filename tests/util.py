@@ -7,6 +7,7 @@ import shutil
 from models import Trader, _Exchange, _Engine, _Information, _Execution, _Hud
 
 MAX_TEAMS = 8
+SIMULATION_TIME = 900
 TEST_ENVS_DIR = "tests/envs"
 
 
@@ -105,6 +106,7 @@ def run_test(test_env: pathlib.Path, run_with_hdu: bool = False):
     config = load_exchange_config(test_env)
 
     hdu_port = config["Hud"]["Port"]
+    speed = config["Engine"]["Speed"]
     traders = [f for f in test_env.glob("*.json") if f.name != "exchange.json"]
     traders = [f.with_suffix("").as_posix() for f in traders]
 
@@ -121,7 +123,7 @@ def run_test(test_env: pathlib.Path, run_with_hdu: bool = False):
         command += [f"--port={hdu_port}"]
 
     try:
-        subprocess.run(command, timeout=120)
+        subprocess.run(command, timeout=SIMULATION_TIME / speed)
     except subprocess.TimeoutExpired:
         pass
 

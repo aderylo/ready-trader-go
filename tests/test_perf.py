@@ -106,7 +106,7 @@ def test_rumble(market_data: pathlib.Path, run_with_hdu, speed):
         Trader(name="autotrader6", binary="autotrader", team_name="Trader6-autotrader"),
         Trader(name="autotrader7", binary="autotrader", team_name="Trader7-autotrader"),
     ]
-    test_env_path = create_test_env("tests/configs/rumble", "rumble", market_data.stem)
+    test_env_path = create_test_env("rumble", market_data.stem)
     score_board_path = test_env_path / "score_board.csv"
 
     populate_test_env(test_env_path, traders)
